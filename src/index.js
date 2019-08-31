@@ -1,5 +1,48 @@
 import { GraphQLServer } from 'graphql-yoga';
 
+// demo user data
+const users = [
+    {
+        id: '1',
+        name: 'Alejandro',
+        email: 'alex@example.com'
+    },
+    {
+        id: '2',
+        name: 'Patricia',
+        email: 'paty@example.com',
+        age: 61
+    },
+    {
+        id: '3',
+        name: 'Magdaleno',
+        email: 'mag@example.com',
+        age: 58
+    }
+];
+
+// demo post data
+const posts = [
+    {
+        id: '1',
+        title: 'Why are people always so mad?',
+        body: 'Is everyone stupid or what? I do not understand.',
+        published: false
+    },
+    {
+        id: '2',
+        title: 'How are we not deserving of dog love',
+        body: 'They are so cute ad we are humans are pretty despicable.',
+        published: true
+    },
+    {
+        id: '3',
+        title: 'What makes me one of the worst failure sons of all time',
+        body: 'I am unemployed taking courses on Udemy to replace school. Fuck my life.',
+        published: false
+    }
+];
+
 // 1. Type definitions
 // inside the template string goes GraphQL code
 
@@ -14,14 +57,15 @@ import { GraphQLServer } from 'graphql-yoga';
 
 // operation argument are attached at the right of the query name as if it was a function
 
-// the 'grades' query returns an array of integers as it is defined on its return type syntax
-// the 'add' query now accepts as an argument from the client an array of floats
+// the 'users' query returns an array of the 'User' custom type that matches the 'User' type definition
+// and it accepts a query string (optional)
+
+// the 'posts' query returns an array of 'Post' custom types and accepts an optional query string
 const typeDefs = `
 
     type Query {
-        greeting(name: String, position: String): String!
-        add(numbers: [Float!]!): Float!
-        grades: [Int!]!
+        users(query: String): [User!]!
+        posts(query: String): [Post!]!
         me: User!
         post: Post!
     }
@@ -50,42 +94,45 @@ const typeDefs = `
 // returns a User model
 
 // the 'post' resolver associated with the 'post' query returns a Post model
+
+// all resolvers have injected 4 arguments
+
+// parent: information about the parent of the model to work with (useful when working with relational data)
+// example - determine the User (parent) that wrote a Post (children)
+
+// args: the actual operation arguments incoming from the client
+// ctx: the context (example - the id of a logged in user)
+// info: information about the operations being made in the request process
 const resolvers = {
 
     Query: {
 
-        // all resolvers have injected 4 arguments
+        // the 'users' query resolver
+        users(parent, args, ctx, info) {
 
-        // parent: information about the parent of the model to work with (useful when working with relational data)
-        // example - determine the User (parent) that wrote a Post (children)
-
-        // args: the actual operation arguments incoming from the client
-        // ctx: the context (example - the id of a logged in user)
-        // info: information about the operations being made in the request process
-        greeting(parent, args, ctx, info) {
-
-            if (args.name && args.position) {
-                return `Hello ${args.name}! You are my favorite ${args.position}!`;
-            } else {
-                return 'Hello!';
+            // no query: return all users
+            if (!args.query) {
+                return users;
             }
+
+            // query: search for matches of query string with the user name and return filtered array
+            return users.filter(user => user.name.toLowerCase().includes(args.query.toLowerCase()));
 
         },
 
-        // the 'add' resolver has in its 'args' argument the array of numbers to work with in the server-side
-        add(parent, args, ctx, info) {
+        // the 'posts' query resolver
+        posts(parent, args, ctx, info) {
 
-            if (args.numbers.length === 0) {
-                return 0;
+            // no query: return all posts
+            if (!args.query) {
+                return posts;
             }
 
-            return args.numbers.reduce((accumulator, currentValue) => accumulator + currentValue);
+            // query: return all posts that match the search query either in the post title or in the post body
+            return posts.filter(post => {
+                return post.title.toLowerCase().includes(args.query.toLowerCase()) || post.body.toLowerCase().includes(args.query.toLowerCase());
+            });
 
-        },
-
-        // returning an array of scalar-types
-        grades(parent, args, ctx, info) {
-            return [99, 80, 93];
         },
 
         me() {
