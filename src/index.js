@@ -13,11 +13,15 @@ import { GraphQLServer } from 'graphql-yoga';
 // 'post' query returns a post
 
 // operation argument are attached at the right of the query name as if it was a function
+
+// the 'grades' query returns an array of integers as it is defined on its return type syntax
+// the 'add' query now accepts as an argument from the client an array of floats
 const typeDefs = `
 
     type Query {
         greeting(name: String, position: String): String!
-        add(a: Float!, b: Float!): Float!
+        add(numbers: [Float!]!): Float!
+        grades: [Int!]!
         me: User!
         post: Post!
     }
@@ -47,6 +51,7 @@ const typeDefs = `
 
 // the 'post' resolver associated with the 'post' query returns a Post model
 const resolvers = {
+
     Query: {
 
         // all resolvers have injected 4 arguments
@@ -67,8 +72,20 @@ const resolvers = {
 
         },
 
+        // the 'add' resolver has in its 'args' argument the array of numbers to work with in the server-side
         add(parent, args, ctx, info) {
-            return args.a + args.b;
+
+            if (args.numbers.length === 0) {
+                return 0;
+            }
+
+            return args.numbers.reduce((accumulator, currentValue) => accumulator + currentValue);
+
+        },
+
+        // returning an array of scalar-types
+        grades(parent, args, ctx, info) {
+            return [99, 80, 93];
         },
 
         me() {
@@ -90,6 +107,7 @@ const resolvers = {
         }
 
     }
+
 };
 
 // set up the GraphQL server
