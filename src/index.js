@@ -5,10 +5,11 @@ import { GraphQLServer } from 'graphql-yoga';
 const typeDefs = `
     type Query {
         id: ID!
-        name: String!
-        age: Int!
-        employed: Boolean!
-        gpa: Float
+        title: String!
+        price: Float!
+        releaseYear: Int
+        rating: Float
+        inStock: Boolean!
     }
 `;
 
@@ -18,20 +19,22 @@ const typeDefs = `
 const resolvers = {
     Query: {
         id() {
-            return 'abc123';
+            return 'ef9ae3';
         },
-        name() {
-            return 'Alejandro Rodarte';
+        title() {
+            return 'Mayonnaise';
         },
-        age() {
-            return 23;
+        price() {
+            return 19.99;
         },
-        employed() {
-            return false;
+        releaseYear() {
+            return 2022;
         },
-        gpa() {
-            return 3.4;
-            // return null is also valid in this field
+        rating() {
+            return null;
+        },
+        inStock() {
+            return true;
         }
     }
 };
