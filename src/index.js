@@ -11,8 +11,13 @@ import { GraphQLServer } from 'graphql-yoga';
 
 // the 'Post' type is a custom object with id, title, body and published flag
 // 'post' query returns a post
+
+// operation argument are attached at the right of the query name as if it was a function
 const typeDefs = `
+
     type Query {
+        greeting(name: String, position: String): String!
+        add(a: Float!, b: Float!): Float!
         me: User!
         post: Post!
     }
@@ -43,6 +48,28 @@ const typeDefs = `
 // the 'post' resolver associated with the 'post' query returns a Post model
 const resolvers = {
     Query: {
+
+        // all resolvers have injected 4 arguments
+
+        // parent: information about the parent of the model to work with (useful when working with relational data)
+        // example - determine the User (parent) that wrote a Post (children)
+
+        // args: the actual operation arguments incoming from the client
+        // ctx: the context (example - the id of a logged in user)
+        // info: information about the operations being made in the request process
+        greeting(parent, args, ctx, info) {
+
+            if (args.name && args.position) {
+                return `Hello ${args.name}! You are my favorite ${args.position}!`;
+            } else {
+                return 'Hello!';
+            }
+
+        },
+
+        add(parent, args, ctx, info) {
+            return args.a + args.b;
+        },
 
         me() {
             return {
