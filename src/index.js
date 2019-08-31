@@ -2,40 +2,66 @@ import { GraphQLServer } from 'graphql-yoga';
 
 // 1. Type definitions
 // inside the template string goes GraphQL code
+
+// type Query: define a query we can make
+// type <Name>: define a custom type with fields
+
+// type User defines how the custom 'User' model is structured
+// the 'me' query allows to return a User model
+
+// the 'Post' type is a custom object with id, title, body and published flag
+// 'post' query returns a post
 const typeDefs = `
     type Query {
+        me: User!
+        post: Post!
+    }
+
+    type User {
+        id: ID!
+        name: String!
+        email: String!
+        age: Int
+    }
+
+    type Post {
         id: ID!
         title: String!
-        price: Float!
-        releaseYear: Int
-        rating: Float
-        inStock: Boolean!
+        body: String!
+        published: Boolean!
     }
+
 `;
 
 // 2. Resolvers
 // usually mirrors the type definition structure
 // we have one method for each query we set up above
+
+// the 'me' resolver associated with the 'me' query has a method that
+// returns a User model
+
+// the 'post' resolver associated with the 'post' query returns a Post model
 const resolvers = {
     Query: {
-        id() {
-            return 'ef9ae3';
+
+        me() {
+            return {
+                id: '123890',
+                name: 'Alejandro',
+                email: 'alejandrorodarte1@gmail.com',
+                age: 15
+            };
         },
-        title() {
-            return 'Mayonnaise';
-        },
-        price() {
-            return 19.99;
-        },
-        releaseYear() {
-            return 2022;
-        },
-        rating() {
-            return null;
-        },
-        inStock() {
-            return true;
+
+        post() {
+            return {
+                id: 'abcxyz',
+                title: 'My Post Title',
+                body: 'My Post Description',
+                published: false
+            };
         }
+
     }
 };
 
