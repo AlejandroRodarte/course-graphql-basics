@@ -1,18 +1,43 @@
-// import things we want from the file (should be exported)
-// named export (msg) and default export (location, no curly braces)
-import myCurrentLocation, { msg, getGreeting } from './myModule';
+import { GraphQLServer } from 'graphql-yoga';
 
-// default and named exports for the math.js file
-import addNumbers, { subtract } from './math';
+// 1. Type definitions
+// inside the template string goes GraphQL code
+const typeDefs = `
+    type Query {
+        hello: String!
+        name: String!
+        location: String!
+        bio: String!
+    }
+`;
 
-// using the imported thing
-console.log(msg);
-console.log(myCurrentLocation);
+// 2. Resolvers
+// usually mirrors the type definition structure
+// we have one method for each query we set up above
+const resolvers = {
+    Query: {
+        hello() {
+            return 'This is my first query!';
+        },
+        name() {
+            return 'Alejandro Rodarte'
+        },
+        location() {
+            return 'Ciudad Juarez, Chihuahua'
+        },
+        bio() {
+            return 'I am an unemployed bastard'
+        }
+    }
+};
 
-// using imported functions
-console.log(getGreeting('Alejandro'));
+// set up the GraphQL server
+const server = new GraphQLServer({
+    typeDefs,
+    resolvers
+});
 
-const sum = addNumbers(2, 3);
-const result = subtract(sum, 1);
-
-console.log(result);
+// kickstart the server (default port: 4000)
+server.start(() => {
+    console.log('The server is up!');
+});
