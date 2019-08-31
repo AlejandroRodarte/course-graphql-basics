@@ -4,10 +4,11 @@ import { GraphQLServer } from 'graphql-yoga';
 // inside the template string goes GraphQL code
 const typeDefs = `
     type Query {
-        hello: String!
+        id: ID!
         name: String!
-        location: String!
-        bio: String!
+        age: Int!
+        employed: Boolean!
+        gpa: Float
     }
 `;
 
@@ -16,17 +17,21 @@ const typeDefs = `
 // we have one method for each query we set up above
 const resolvers = {
     Query: {
-        hello() {
-            return 'This is my first query!';
+        id() {
+            return 'abc123';
         },
         name() {
-            return 'Alejandro Rodarte'
+            return 'Alejandro Rodarte';
         },
-        location() {
-            return 'Ciudad Juarez, Chihuahua'
+        age() {
+            return 23;
         },
-        bio() {
-            return 'I am an unemployed bastard'
+        employed() {
+            return false;
+        },
+        gpa() {
+            return 3.4;
+            // return null is also valid in this field
         }
     }
 };
