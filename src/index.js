@@ -1,192 +1,6 @@
 import { GraphQLServer } from 'graphql-yoga';
 import uuidv4 from 'uuid';
-
-// demo user data
-let users = [
-    {
-        id: '1',
-        name: 'Alejandro',
-        email: 'alex@example.com'
-    },
-    {
-        id: '2',
-        name: 'Patricia',
-        email: 'paty@example.com',
-        age: 61
-    },
-    {
-        id: '3',
-        name: 'Magdaleno',
-        email: 'mag@example.com',
-        age: 58
-    }
-];
-
-// demo post data
-// now adding the 'author' property which will hold the user's id that made the post
-let posts = [
-    {
-        id: '10',
-        title: 'Why are people always so mad?',
-        body: 'Is everyone stupid or what? I do not understand.',
-        published: false,
-        author: '1'
-    },
-    {
-        id: '11',
-        title: 'How are we not deserving of dog love',
-        body: 'They are so cute ad we are humans are pretty despicable.',
-        published: true,
-        author: '1'
-    },
-    {
-        id: '12',
-        title: 'What makes me one of the worst failure sons of all time',
-        body: 'I am unemployed taking courses on Udemy to replace school. Fuck my life.',
-        published: false,
-        author: '2'
-    }
-];
-
-// dummy comments
-// added an author id to identify who wrote the comment
-// also added a post id to identify what post owns this comment
-let comments = [
-    {
-        id: '100',
-        text: 'This is pure non-sense.',
-        author: '2',
-        post: '10'
-    },
-    {
-        id: '101',
-        text: 'How did you formulate this opinion?',
-        author: '3',
-        post: '12'
-    },
-    {
-        id: '102',
-        text: 'Lol that was not funny.',
-        author: '3',
-        post: '11'
-    },
-    {
-        id: '103',
-        text: 'Kono Dio Da!',
-        author: '1',
-        post: '11'
-    }
-];
-
-// 1. Type definitions
-// inside the template string goes GraphQL code
-
-// type Query: define a query we can make
-// type <Name>: define a custom type with fields
-
-// type User defines how the custom 'User' model is structured
-// the 'me' query allows to return a User model
-
-// the 'Post' type is a custom object with id, title, body and published flag
-// 'post' query returns a post
-
-// operation argument are attached at the right of the query name as if it was a function
-
-// the 'users' query returns an array of the 'User' custom type that matches the 'User' type definition
-// and it accepts a query string (optional)
-
-// the 'posts' query returns an array of 'Post' custom types and accepts an optional query string
-
-// many posts are associated with one user: to associate a post with a user, declare a new field in the 
-// Post type definition which will be of type User
-
-// the 'User' type definiton has now a 'posts' fields which will hold an array of Posts that were created by a user
-
-// the 'Comment' type definition with id and text required fields
-// added a 'comments' query which returns an array of comment custom types
-
-// added to the 'Comment' type an 'author' field that holds the User that wrote such Comment
-// added to the 'User' type a 'comments' field that holds an array of Comment objects that the User wrote
-
-// added to the 'Comment' type a 'post' field that holds the Post object that owns that comment
-// added to the 'Post' type a 'comments' field that holds the Comments related to that Post
-
-// type Mutation: declare all operations to create/update/delete data
-// createUser creates a user based on a name, email and age
-// createPost creates a post based on title, body, published flag and author id
-// createComment creates a comment based on the text, author id and post id
-
-// CreateUserInput input type that represents all scalar types required to add a new user
-// CreatePostInput input type that represents all scalar types required to add a new post
-// CreateCommentInput input type that represents all scalar types required to add a new comment
-
-// deleteUser to delete a user based on its id, also delete all posts made by it and its comments
-// deletePost to delete a post based on its id and all of its comments
-// deleteComment to delete a comment based on its id
-const typeDefs = `
-
-    type Query {
-        users(query: String): [User!]!
-        posts(query: String): [Post!]!
-        comments: [Comment!]!
-        me: User!
-        post: Post!
-    }
-
-    type Mutation {
-        createUser(data: CreateUserInput!): User!
-        createPost(data: CreatePostInput!): Post!
-        createComment(data: CreateCommentInput!): Comment!
-        deleteUser(id: ID!): User!
-        deletePost(id: ID!): Post!
-        deleteComment(id: ID!): Comment!
-    }
-
-    input CreateUserInput {
-        name: String!
-        email: String!
-        age: Int
-    }
-
-    input CreatePostInput {
-        title: String!
-        body: String!
-        published: Boolean!
-        author: ID!
-    }
-
-    input CreateCommentInput {
-        text: String!
-        author: ID!
-        post: ID!
-    }
-
-    type User {
-        id: ID!
-        name: String!
-        email: String!
-        age: Int
-        posts: [Post!]!
-        comments: [Comment!]!
-    }
-
-    type Post {
-        id: ID!
-        title: String!
-        body: String!
-        published: Boolean!
-        author: User!
-        comments: [Comment!]!
-    }
-
-    type Comment {
-        id: ID!
-        text: String!
-        author: User!
-        post: Post!
-    }
-
-`;
+import db from './db';
 
 // 2. Resolvers
 // usually mirrors the type definition structure
@@ -210,36 +24,36 @@ const resolvers = {
     Query: {
 
         // the 'users' query resolver
-        users(parent, args, ctx, info) {
+        users(parent, args, { db }, info) {
 
             // no query: return all users
             if (!args.query) {
-                return users;
+                return db.users;
             }
 
             // query: search for matches of query string with the user name and return filtered array
-            return users.filter(user => user.name.toLowerCase().includes(args.query.toLowerCase()));
+            return db.users.filter(user => user.name.toLowerCase().includes(args.query.toLowerCase()));
 
         },
 
         // the 'posts' query resolver
-        posts(parent, args, ctx, info) {
+        posts(parent, args, { db }, info) {
 
             // no query: return all posts
             if (!args.query) {
-                return posts;
+                return db.posts;
             }
 
             // query: return all posts that match the search query either in the post title or in the post body
-            return posts.filter(post => {
+            return db.posts.filter(post => {
                 return post.title.toLowerCase().includes(args.query.toLowerCase()) || post.body.toLowerCase().includes(args.query.toLowerCase());
             });
 
         },
 
         // the 'comments' query resolver: return all comments (part 1)
-        comments(parent, args, ctx, info) {
-            return comments;
+        comments(parent, args, { db }, info) {
+            return db.comments;
         },
 
         me() {
@@ -266,10 +80,10 @@ const resolvers = {
     Mutation: {
 
         // create a new user
-        createUser(parent, args, ctx, info) {
+        createUser(parent, args, { db }, info) {
 
             // check if email is already taken
-            const emailTaken = users.some(user => user.email === args.data.email);
+            const emailTaken = db.users.some(user => user.email === args.data.email);
 
             // if so, throw error
             if (emailTaken) {
@@ -283,7 +97,7 @@ const resolvers = {
             };
 
             // add the user (in array)
-            users.push(user);
+            db.users.push(user);
 
             // response
             return user;
@@ -291,10 +105,10 @@ const resolvers = {
         },
 
         // create a post
-        createPost(parent, args, ctx, info) {
+        createPost(parent, args, { db }, info) {
 
             // check if user exists given the author id through the arguments
-            const userExists = users.some(user => user.id === args.data.author);
+            const userExists = db.users.some(user => user.id === args.data.author);
 
             // user does not exist: throw error
             if (!userExists) {
@@ -308,7 +122,7 @@ const resolvers = {
             };
 
             // push the new post
-            posts.push(post);
+            db.posts.push(post);
 
             // response
             return post;
@@ -316,10 +130,10 @@ const resolvers = {
         },
 
         // create a new comment
-        createComment(parent, args, ctx, info) {
+        createComment(parent, args, { db }, info) {
 
             // check if user exists
-            const userExists = users.some(user => user.id === args.data.author);
+            const userExists = db.users.some(user => user.id === args.data.author);
 
             // user does not exist: throw error
             if (!userExists) {
@@ -327,7 +141,7 @@ const resolvers = {
             }
 
             // check if post exists and is published
-            const postAvailable = posts.some(post => (post.id === args.data.post) && (post.published === true));
+            const postAvailable = db.posts.some(post => (post.id === args.data.post) && (post.published === true));
 
             // post does not exist or is not published: throw error
             if (!postAvailable) {
@@ -341,7 +155,7 @@ const resolvers = {
             };
 
             // add the new comment
-            comments.push(comment);
+            db.comments.push(comment);
 
             // response
             return comment;
@@ -349,10 +163,10 @@ const resolvers = {
         },
 
         // delete a user by id (and all its posts and comments)
-        deleteUser(parent, args, ctx, info) {
+        deleteUser(parent, args, { db }, info) {
 
             // find user
-            const userIndex = users.findIndex(user => user.id === args.id);
+            const userIndex = db.users.findIndex(user => user.id === args.id);
 
             // user not found: throw error
             if (userIndex === -1) {
@@ -360,17 +174,17 @@ const resolvers = {
             }
 
             // delete the user: get deleted user thanks to how splice() works
-            const deletedUsers = users.splice(userIndex, 1);
+            const deletedUsers = db.users.splice(userIndex, 1);
             
             // filter posts
-            posts = posts.filter(post => {
+            db.posts = db.posts.filter(post => {
 
                 // check if the post was made by that user
                 const match = post.author === args.id;
 
                 // filter out all comments that were related to that post
                 if (match) {
-                    comments = comments.filter(comment => comment.post !== post.id);
+                    db.comments = db.comments.filter(comment => comment.post !== post.id);
                 }
 
                 // filter all posts that were not made by that user
@@ -379,7 +193,7 @@ const resolvers = {
             });
 
             // delete all comments written by that user
-            comments = comments.filter(comment => comment.author !== args.id);
+            db.comments = db.comments.filter(comment => comment.author !== args.id);
 
             // return the deleted user
             return deletedUsers[0];
@@ -387,10 +201,10 @@ const resolvers = {
         },
 
         // delete a post by id
-        deletePost(parent, args, ctx, info) {
+        deletePost(parent, args, { db }, info) {
 
             // search for the post
-            const postIndex = posts.findIndex(post => post.id === args.id);
+            const postIndex = db.posts.findIndex(post => post.id === args.id);
 
             // post not found: throw error
             if (postIndex === -1) {
@@ -398,10 +212,10 @@ const resolvers = {
             }
             
             // delete and get deleted post
-            const deletedPosts = posts.splice(postIndex, 1);
+            const deletedPosts = db.posts.splice(postIndex, 1);
 
             // filter our comments that were not related to that post
-            comments = comments.filter(comment => comment.post !== args.id);
+            db.comments = db.comments.filter(comment => comment.post !== args.id);
 
             // return deleted post
             return deletedPosts[0];
@@ -409,10 +223,10 @@ const resolvers = {
         },
 
         // delete comment by id
-        deleteComment(parent, args, ctx, info) {
+        deleteComment(parent, args, { db }, info) {
 
             // search for the comment
-            const commentIndex = comments.findIndex(comment => comment.id === args.id);
+            const commentIndex = db.comments.findIndex(comment => comment.id === args.id);
 
             // comment not found; throw error
             if (commentIndex === -1) {
@@ -420,7 +234,7 @@ const resolvers = {
             }
 
             // delete the comment and get it back
-            const deletedComments = comments.splice(commentIndex, 1);
+            const deletedComments = db.comments.splice(commentIndex, 1);
 
             // return the deleted comment
             return deletedComments[0];
@@ -433,14 +247,14 @@ const resolvers = {
     // with the Post's author foreign key (owner, parent)
     Post: {
 
-        author(parent, args, ctx, info) {
-            return users.find(user => user.id === parent.author); 
+        author(parent, args, { db }, info) {
+            return db.users.find(user => user.id === parent.author); 
         },
 
         // resolver when accessing Comments given a particular Post, get Comments where its 'post' foreign key
         // match the parent's (post) primary key id
-        comments(parent, args, ctx, info) {
-            return comments.filter(comment => comment.post === parent.id);
+        comments(parent, args, { db }, info) {
+            return db.comments.filter(comment => comment.post === parent.id);
         }
 
     },
@@ -449,14 +263,14 @@ const resolvers = {
     // user's id (parent)
     User: {
 
-        posts(parent, args, ctx, info) {
-            return posts.filter(post => parent.id === post.author);
+        posts(parent, args, { db }, info) {
+            return db.posts.filter(post => parent.id === post.author);
         },
 
         // resolver when accessing Comments given a User, get all Comments that match the User primary key (id, parent)
         // with the Comment foreign key (owner, user id)
-        comments(parent, args, ctx, info) {
-            return comments.filter(comment => parent.id === comment.author);
+        comments(parent, args, { db }, info) {
+            return db.comments.filter(comment => parent.id === comment.author);
         }
 
     },
@@ -464,14 +278,14 @@ const resolvers = {
     // resolver when accessing User given a Comment: find User that matches its primary key (id) with the comments id (parent)
     Comment: {
 
-        author(parent, args, ctx, info) {
-            return users.find(user => user.id === parent.author);
+        author(parent, args, { db }, info) {
+            return db.users.find(user => user.id === parent.author);
         },
 
         // resolver when accessing a Post given a Comment, search for the post where its primary key (id) matches the parent 'post'
         // foreign key (Comment)
-        post(parent, args, ctx, info) {
-            return posts.find(post => post.id === parent.post);
+        post(parent, args, { db }, info) {
+            return db.posts.find(post => post.id === parent.post);
         }
 
     }
@@ -479,9 +293,13 @@ const resolvers = {
 };
 
 // set up the GraphQL server
+// typeDefs: pointer to the file that has our type definitions
 const server = new GraphQLServer({
-    typeDefs,
-    resolvers
+    typeDefs: './src/schema.graphql',
+    resolvers,
+    context: {
+        db
+    }
 });
 
 // kickstart the server (default port: 4000)
