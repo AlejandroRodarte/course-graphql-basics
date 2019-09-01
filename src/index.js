@@ -2,7 +2,7 @@ import { GraphQLServer } from 'graphql-yoga';
 import uuidv4 from 'uuid';
 
 // demo user data
-const users = [
+let users = [
     {
         id: '1',
         name: 'Alejandro',
@@ -24,7 +24,7 @@ const users = [
 
 // demo post data
 // now adding the 'author' property which will hold the user's id that made the post
-const posts = [
+let posts = [
     {
         id: '10',
         title: 'Why are people always so mad?',
@@ -51,7 +51,7 @@ const posts = [
 // dummy comments
 // added an author id to identify who wrote the comment
 // also added a post id to identify what post owns this comment
-const comments = [
+let comments = [
     {
         id: '100',
         text: 'This is pure non-sense.',
@@ -133,6 +133,7 @@ const typeDefs = `
         createUser(data: CreateUserInput!): User!
         createPost(data: CreatePostInput!): Post!
         createComment(data: CreateCommentInput!): Comment!
+        deleteUser(id: ID!): User!
     }
 
     input CreateUserInput {
@@ -338,6 +339,44 @@ const resolvers = {
 
             // response
             return comment;
+
+        },
+
+        // delete a user by id (and all its posts and comments)
+        deleteUser(parent, args, ctx, info) {
+
+            // find user
+            const userIndex = users.findIndex(user => user.id === args.id);
+
+            // user not found: throw error
+            if (userIndex === -1) {
+                throw new Error('Attempted to delete non-existent user.')
+            }
+
+            // delete the user: get deleted user thanks to how splice() works
+            const deletedUsers = users.splice(userIndex, 1);
+            
+            // filter posts
+            posts = posts.filter(post => {
+
+                // check if the post was made by that user
+                const match = post.author === args.id;
+
+                // filter out all comments that were related to that post
+                if (match) {
+                    comments = comments.filter(comment => comment.post !== post.id);
+                }
+
+                // filter all posts that were not made by that user
+                return !match;
+
+            });
+
+            // delete all comments written by that user
+            comments = comments.filter(comment => comment.author !== args.id);
+
+            // return the deleted user
+            return deletedUsers[0];
 
         }
 
