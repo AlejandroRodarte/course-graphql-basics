@@ -22,24 +22,28 @@ const users = [
 ];
 
 // demo post data
+// now adding the 'author' property which will hold the user's id that made the post
 const posts = [
     {
-        id: '1',
+        id: '10',
         title: 'Why are people always so mad?',
         body: 'Is everyone stupid or what? I do not understand.',
-        published: false
+        published: false,
+        author: '1'
     },
     {
-        id: '2',
+        id: '11',
         title: 'How are we not deserving of dog love',
         body: 'They are so cute ad we are humans are pretty despicable.',
-        published: true
+        published: true,
+        author: '1'
     },
     {
-        id: '3',
+        id: '12',
         title: 'What makes me one of the worst failure sons of all time',
         body: 'I am unemployed taking courses on Udemy to replace school. Fuck my life.',
-        published: false
+        published: false,
+        author: '2'
     }
 ];
 
@@ -61,6 +65,9 @@ const posts = [
 // and it accepts a query string (optional)
 
 // the 'posts' query returns an array of 'Post' custom types and accepts an optional query string
+
+// many posts are associated with one user: to associate a post with a user, declare a new field in the 
+// Post type definition which will be of type User
 const typeDefs = `
 
     type Query {
@@ -82,6 +89,7 @@ const typeDefs = `
         title: String!
         body: String!
         published: Boolean!
+        author: User!
     }
 
 `;
@@ -153,6 +161,14 @@ const resolvers = {
             };
         }
 
+    },
+
+    // resolver when accessing a User given a Post: get User by matching its primary key (id)
+    // with the Post's author foreign key (owner)
+    Post: {
+        author(parent, args, ctx, info) {
+            return users.find(user => user.id === parent.author); 
+        }
     }
 
 };
