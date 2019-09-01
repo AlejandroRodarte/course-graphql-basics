@@ -115,6 +115,10 @@ const comments = [
 // createUser creates a user based on a name, email and age
 // createPost creates a post based on title, body, published flag and author id
 // createComment creates a comment based on the text, author id and post id
+
+// CreateUserInput input type that represents all scalar types required to add a new user
+// CreatePostInput input type that represents all scalar types required to add a new post
+// CreateCommentInput input type that represents all scalar types required to add a new comment
 const typeDefs = `
 
     type Query {
@@ -126,9 +130,28 @@ const typeDefs = `
     }
 
     type Mutation {
-        createUser(name: String!, email: String!, age: Int): User!
-        createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
-        createComment(text: String!, author: ID!, post: ID!): Comment!
+        createUser(data: CreateUserInput!): User!
+        createPost(data: CreatePostInput!): Post!
+        createComment(data: CreateCommentInput!): Comment!
+    }
+
+    input CreateUserInput {
+        name: String!
+        email: String!
+        age: Int
+    }
+
+    input CreatePostInput {
+        title: String!
+        body: String!
+        published: Boolean!
+        author: ID!
+    }
+
+    input CreateCommentInput {
+        text: String!
+        author: ID!
+        post: ID!
     }
 
     type User {
@@ -239,7 +262,7 @@ const resolvers = {
         createUser(parent, args, ctx, info) {
 
             // check if email is already taken
-            const emailTaken = users.some(user => user.email === args.email);
+            const emailTaken = users.some(user => user.email === args.data.email);
 
             // if so, throw error
             if (emailTaken) {
@@ -249,7 +272,7 @@ const resolvers = {
             // create new user: generate a new random id
             const user = {
                 id: uuidv4(),
-                ...args
+                ...args.data
             };
 
             // add the user (in array)
@@ -264,7 +287,7 @@ const resolvers = {
         createPost(parent, args, ctx, info) {
 
             // check if user exists given the author id through the arguments
-            const userExists = users.some(user => user.id === args.author);
+            const userExists = users.some(user => user.id === args.data.author);
 
             // user does not exist: throw error
             if (!userExists) {
@@ -274,7 +297,7 @@ const resolvers = {
             // create a new post: generate a random id
             const post = {
                 id: uuidv4(),
-                ...args
+                ...args.data
             };
 
             // push the new post
@@ -289,7 +312,7 @@ const resolvers = {
         createComment(parent, args, ctx, info) {
 
             // check if user exists
-            const userExists = users.some(user => user.id === args.author);
+            const userExists = users.some(user => user.id === args.data.author);
 
             // user does not exist: throw error
             if (!userExists) {
@@ -297,7 +320,7 @@ const resolvers = {
             }
 
             // check if post exists and is published
-            const postAvailable = posts.some(post => (post.id === args.post) && (post.published === true));
+            const postAvailable = posts.some(post => (post.id === args.data.post) && (post.published === true));
 
             // post does not exist or is not published: throw error
             if (!postAvailable) {
@@ -307,7 +330,7 @@ const resolvers = {
             // create new comment
             const comment = {
                 id: uuidv4(),
-                ...args
+                ...args.data
             };
 
             // add the new comment
