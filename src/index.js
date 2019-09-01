@@ -68,6 +68,8 @@ const posts = [
 
 // many posts are associated with one user: to associate a post with a user, declare a new field in the 
 // Post type definition which will be of type User
+
+// the 'User' type definiton has now a 'posts' fields which will hold an array of Posts that were created by a user
 const typeDefs = `
 
     type Query {
@@ -82,6 +84,7 @@ const typeDefs = `
         name: String!
         email: String!
         age: Int
+        posts: [Post!]!
     }
 
     type Post {
@@ -164,10 +167,18 @@ const resolvers = {
     },
 
     // resolver when accessing a User given a Post: get User by matching its primary key (id)
-    // with the Post's author foreign key (owner)
+    // with the Post's author foreign key (owner, parent)
     Post: {
         author(parent, args, ctx, info) {
             return users.find(user => user.id === parent.author); 
+        }
+    },
+
+    // resolver when accessing Posts given a User, get all Posts that match their foreign key with the
+    // user's id (parent)
+    User: {
+        posts(parent, args, ctx, info) {
+            return posts.filter(post => parent.id === post.author);
         }
     }
 
