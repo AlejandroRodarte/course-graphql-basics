@@ -249,9 +249,7 @@ const resolvers = {
             // create new user: generate a new random id
             const user = {
                 id: uuidv4(),
-                name: args.name,
-                email: args.email,
-                age: args.age
+                ...args
             };
 
             // add the user (in array)
@@ -276,10 +274,7 @@ const resolvers = {
             // create a new post: generate a random id
             const post = {
                 id: uuidv4(),
-                title: args.title,
-                body: args.body,
-                published: args.published,
-                author: args.author
+                ...args
             };
 
             // push the new post
@@ -312,9 +307,7 @@ const resolvers = {
             // create new comment
             const comment = {
                 id: uuidv4(),
-                text: args.text,
-                author: args.author,
-                post: args.post
+                ...args
             };
 
             // add the new comment
