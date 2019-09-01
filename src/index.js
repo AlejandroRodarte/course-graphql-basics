@@ -119,6 +119,10 @@ let comments = [
 // CreateUserInput input type that represents all scalar types required to add a new user
 // CreatePostInput input type that represents all scalar types required to add a new post
 // CreateCommentInput input type that represents all scalar types required to add a new comment
+
+// deleteUser to delete a user based on its id, also delete all posts made by it and its comments
+// deletePost to delete a post based on its id and all of its comments
+// deleteComment to delete a comment based on its id
 const typeDefs = `
 
     type Query {
@@ -134,6 +138,8 @@ const typeDefs = `
         createPost(data: CreatePostInput!): Post!
         createComment(data: CreateCommentInput!): Comment!
         deleteUser(id: ID!): User!
+        deletePost(id: ID!): Post!
+        deleteComment(id: ID!): Comment!
     }
 
     input CreateUserInput {
@@ -377,6 +383,47 @@ const resolvers = {
 
             // return the deleted user
             return deletedUsers[0];
+
+        },
+
+        // delete a post by id
+        deletePost(parent, args, ctx, info) {
+
+            // search for the post
+            const postIndex = posts.findIndex(post => post.id === args.id);
+
+            // post not found: throw error
+            if (postIndex === -1) {
+                throw new Error('Attempted to delete a non-existent post.');
+            }
+            
+            // delete and get deleted post
+            const deletedPosts = posts.splice(postIndex, 1);
+
+            // filter our comments that were not related to that post
+            comments = comments.filter(comment => comment.post !== args.id);
+
+            // return deleted post
+            return deletedPosts[0];
+
+        },
+
+        // delete comment by id
+        deleteComment(parent, args, ctx, info) {
+
+            // search for the comment
+            const commentIndex = comments.findIndex(comment => comment.id === args.id);
+
+            // comment not found; throw error
+            if (commentIndex === -1) {
+                throw new Error('Attempted to delete a non-existent comment.');
+            }
+
+            // delete the comment and get it back
+            const deletedComments = comments.splice(commentIndex, 1);
+
+            // return the deleted comment
+            return deletedComments[0];
 
         }
 
