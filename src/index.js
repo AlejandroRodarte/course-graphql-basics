@@ -51,19 +51,23 @@ const posts = [
 const comments = [
     {
         id: '100',
-        text: 'This is pure non-sense.'
+        text: 'This is pure non-sense.',
+        author: '2'
     },
     {
         id: '101',
-        text: 'How did you formulate this opinion?'
+        text: 'How did you formulate this opinion?',
+        author: '3'
     },
     {
         id: '102',
-        text: 'Lol that was not funny.'
+        text: 'Lol that was not funny.',
+        author: '3'
     },
     {
         id: '103',
-        text: 'Kono Dio Da!'
+        text: 'Kono Dio Da!',
+        author: '1'
     }
 ];
 
@@ -93,6 +97,9 @@ const comments = [
 
 // the 'Comment' type definition with id and text required fields
 // added a 'comments' query which returns an array of comment custom types
+
+// added to the 'Comment' type an 'author' field that holds the User that wrote such Comment
+// added to the 'User' type a 'comments' field that holds an array of Comment objects that the User wrote
 const typeDefs = `
 
     type Query {
@@ -109,6 +116,7 @@ const typeDefs = `
         email: String!
         age: Int
         posts: [Post!]!
+        comments: [Comment!]!
     }
 
     type Post {
@@ -122,6 +130,7 @@ const typeDefs = `
     type Comment {
         id: ID!
         text: String!
+        author: User!
     }
 
 `;
@@ -211,8 +220,23 @@ const resolvers = {
     // resolver when accessing Posts given a User, get all Posts that match their foreign key with the
     // user's id (parent)
     User: {
+
         posts(parent, args, ctx, info) {
             return posts.filter(post => parent.id === post.author);
+        },
+
+        // resolver when accessing Comments given a User, get all Comments that match the User primary key (id, parent)
+        // with the Comment foreign key (owner, user id)
+        comments(parent, args, ctx, info) {
+            return comments.filter(comment => parent.id === comment.author);
+        }
+
+    },
+
+    // resolver when accessing User given a Comment: find User that matches its primary key (id) with the comments id (parent)
+    Comment: {
+        author(parent, args, ctx, info) {
+            return users.find(user => user.id === parent.author);
         }
     }
 
