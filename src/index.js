@@ -47,6 +47,26 @@ const posts = [
     }
 ];
 
+// dummy comments
+const comments = [
+    {
+        id: '100',
+        text: 'This is pure non-sense.'
+    },
+    {
+        id: '101',
+        text: 'How did you formulate this opinion?'
+    },
+    {
+        id: '102',
+        text: 'Lol that was not funny.'
+    },
+    {
+        id: '103',
+        text: 'Kono Dio Da!'
+    }
+];
+
 // 1. Type definitions
 // inside the template string goes GraphQL code
 
@@ -70,11 +90,15 @@ const posts = [
 // Post type definition which will be of type User
 
 // the 'User' type definiton has now a 'posts' fields which will hold an array of Posts that were created by a user
+
+// the 'Comment' type definition with id and text required fields
+// added a 'comments' query which returns an array of comment custom types
 const typeDefs = `
 
     type Query {
         users(query: String): [User!]!
         posts(query: String): [Post!]!
+        comments: [Comment!]!
         me: User!
         post: Post!
     }
@@ -93,6 +117,11 @@ const typeDefs = `
         body: String!
         published: Boolean!
         author: User!
+    }
+
+    type Comment {
+        id: ID!
+        text: String!
     }
 
 `;
@@ -144,6 +173,11 @@ const resolvers = {
                 return post.title.toLowerCase().includes(args.query.toLowerCase()) || post.body.toLowerCase().includes(args.query.toLowerCase());
             });
 
+        },
+
+        // the 'comments' query resolver: return all comments (part 1)
+        comments(parent, args, ctx, info) {
+            return comments;
         },
 
         me() {
