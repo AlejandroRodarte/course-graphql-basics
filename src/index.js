@@ -1,4 +1,5 @@
 import { GraphQLServer } from 'graphql-yoga';
+import uuidv4 from 'uuid';
 
 // demo user data
 const users = [
@@ -109,6 +110,8 @@ const comments = [
 
 // added to the 'Comment' type a 'post' field that holds the Post object that owns that comment
 // added to the 'Post' type a 'comments' field that holds the Comments related to that Post
+
+// type Mutation: declare all operations to create/update/delete data
 const typeDefs = `
 
     type Query {
@@ -117,6 +120,10 @@ const typeDefs = `
         comments: [Comment!]!
         me: User!
         post: Post!
+    }
+
+    type Mutation {
+        createUser(name: String!, email: String!, age: Int): User!
     }
 
     type User {
@@ -216,6 +223,38 @@ const resolvers = {
                 body: 'My Post Description',
                 published: false
             };
+        }
+
+    },
+
+    // our mutation handlers (resolvers)
+    Mutation: {
+
+        // create a new user
+        createUser(parent, args, ctx, info) {
+
+            // check if email is already taken
+            const emailTaken = users.some(user => user.email === args.email);
+
+            // if so, throw error
+            if (emailTaken) {
+                throw new Error('Email is already in use.');
+            }
+
+            // create new user: generate a new random id
+            const user = {
+                id: uuidv4(),
+                name: args.name,
+                email: args.email,
+                age: args.age
+            };
+
+            // add the user (in array)
+            users.push(user);
+
+            // response
+            return user;
+
         }
 
     },
