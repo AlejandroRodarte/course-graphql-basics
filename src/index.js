@@ -112,6 +112,9 @@ const comments = [
 // added to the 'Post' type a 'comments' field that holds the Comments related to that Post
 
 // type Mutation: declare all operations to create/update/delete data
+// createUser creates a user based on a name, email and age
+// createPost creates a post based on title, body, published flag and author id
+// createComment creates a comment based on the text, author id and post id
 const typeDefs = `
 
     type Query {
@@ -124,6 +127,8 @@ const typeDefs = `
 
     type Mutation {
         createUser(name: String!, email: String!, age: Int): User!
+        createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
+        createComment(text: String!, author: ID!, post: ID!): Comment!
     }
 
     type User {
@@ -254,6 +259,69 @@ const resolvers = {
 
             // response
             return user;
+
+        },
+
+        // create a post
+        createPost(parent, args, ctx, info) {
+
+            // check if user exists given the author id through the arguments
+            const userExists = users.some(user => user.id === args.author);
+
+            // user does not exist: throw error
+            if (!userExists) {
+                throw new Error('Attempted to add a new post to a non-existent user.');
+            }
+
+            // create a new post: generate a random id
+            const post = {
+                id: uuidv4(),
+                title: args.title,
+                body: args.body,
+                published: args.published,
+                author: args.author
+            };
+
+            // push the new post
+            posts.push(post);
+
+            // response
+            return post;
+
+        },
+
+        // create a new comment
+        createComment(parent, args, ctx, info) {
+
+            // check if user exists
+            const userExists = users.some(user => user.id === args.author);
+
+            // user does not exist: throw error
+            if (!userExists) {
+                throw new Error('Attempted to add a new comment to a non-existent user.')
+            }
+
+            // check if post exists and is published
+            const postAvailable = posts.some(post => (post.id === args.post) && (post.published === true));
+
+            // post does not exist or is not published: throw error
+            if (!postAvailable) {
+                throw new Error('Attempted to add a new comment to a non-existent or unpublished post.');
+            }
+
+            // create new comment
+            const comment = {
+                id: uuidv4(),
+                text: args.text,
+                author: args.author,
+                post: args.post
+            };
+
+            // add the new comment
+            comments.push(comment);
+
+            // response
+            return comment;
 
         }
 
