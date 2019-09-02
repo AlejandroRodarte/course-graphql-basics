@@ -207,6 +207,61 @@ const Mutation = {
 
         return user;
 
+    },
+
+    // update post
+    updatePost(parent, args, { db }, info) {
+
+        const { id, data } = args;
+
+        // find post
+        const post = db.posts.find(post => post.id === id);
+
+        // not found: throw error
+        if (!post) {
+            throw new Error('Attempted to update a non-existend post.');
+        }
+
+        // title input is a string
+        if (typeof data.title === 'string') {
+            post.title = data.title;
+        }
+
+        // body input is a string
+        if (typeof data.body === 'string') {
+            post.body = data.body;
+        }
+
+        // published is a boolean
+        if (typeof data.published === 'boolean') {
+            post.published = data.published;
+        }
+
+        // return updated post
+        return post;
+
+    },
+
+    // update a comment
+    updateComment(parent, args, { db }, info) {
+
+        const { id, data } = args;
+
+        // find comment
+        const comment = db.comments.find(comment => comment.id === id);
+
+        // not found: throw error
+        if (!comment) {
+            throw new Error('Attempted to update a non-existent comment.');
+        }
+
+        // text input is a string
+        if (typeof data.text === 'string') {
+            comment.text = data.text;
+        }
+
+        return comment;
+
     }
 
 };

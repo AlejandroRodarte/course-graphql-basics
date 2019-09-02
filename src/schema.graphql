@@ -44,6 +44,13 @@
 # deletePost to delete a post based on its id and all of its comments
 # deleteComment to delete a comment based on its id
 
+# updateUser to update user information by id
+# updatePost to update post information by id
+# updateComment to update comment information by id
+
+# UpdateUserInput the same as CreateUserInput but with all fields optional
+# UpdatePostInput the same as CreatePostInput but with all fields optional (except author)
+# UpdateCommentInput the same as CreateCommentInput but with all fields optional (except author and post)
 type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
@@ -60,6 +67,8 @@ type Mutation {
     deletePost(id: ID!): Post!
     deleteComment(id: ID!): Comment!
     updateUser(id: ID!, data: UpdateUserInput!): User!
+    updatePost(id: ID!, data: UpdatePostInput!): Post!
+    updateComment(id: ID!, data: UpdateCommentInput!): Comment!
 }
 
 input CreateUserInput {
@@ -85,6 +94,16 @@ input UpdateUserInput {
     name: String
     email: String
     age: Int
+}
+
+input UpdatePostInput {
+    title: String
+    body: String
+    published: Boolean
+}
+
+input UpdateCommentInput {
+    text: String
 }
 
 type User {
