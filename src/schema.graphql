@@ -56,6 +56,7 @@
 # count subscription returns an integer
 
 # comments to listen for comments in a particular post
+# post to listen for newly created posts
 type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
@@ -77,8 +78,8 @@ type Mutation {
 }
 
 type Subscription {
-    count: Int!
     comment(postId: ID!): Comment!
+    post: Post!
 }
 
 input CreateUserInput {

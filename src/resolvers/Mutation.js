@@ -29,7 +29,7 @@ const Mutation = {
     },
 
     // create a post
-    createPost(parent, args, { db }, info) {
+    createPost(parent, args, { db, pubsub }, info) {
 
         // check if user exists given the author id through the arguments
         const userExists = db.users.some(user => user.id === args.data.author);
@@ -47,6 +47,11 @@ const Mutation = {
 
         // push the new post
         db.posts.push(post);
+
+        // if post is published, publish the post through the 'post' channel
+        if (args.data.published) {
+            pubsub.publish('post', { post });
+        }
 
         // response
         return post;
