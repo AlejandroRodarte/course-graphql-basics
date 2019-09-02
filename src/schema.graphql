@@ -57,6 +57,9 @@
 
 # comments to listen for comments in a particular post
 # post to listen for newly created posts
+
+# PostSubscriptionPayload as a type that contains the post and the mutation operation
+# CommentSubscriptionPayload as a type that contains the comment and the mutation operation
 type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
@@ -78,7 +81,7 @@ type Mutation {
 }
 
 type Subscription {
-    comment(postId: ID!): Comment!
+    comment(postId: ID!): CommentSubscriptionPayload!
     post: PostSubscriptionPayload!
 }
 
@@ -145,4 +148,9 @@ type Comment {
 type PostSubscriptionPayload {
     mutation: String!
     data: Post!
+}
+
+type CommentSubscriptionPayload {
+    mutation: String!
+    data: Comment!
 }

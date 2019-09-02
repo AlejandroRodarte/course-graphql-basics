@@ -95,7 +95,13 @@ const Mutation = {
         // publish the new comment object on the channel that belong to a particular post id
         // example: subscribe to post 12; channel name: 'comment 12'
         // when a comment in post 12 is made, we publish the comment to channel 'comment 12'
-        pubsub.publish(`comment ${args.data.post}`, { comment });
+        // now inform about the mutation operation (this comment was created)
+        pubsub.publish(`comment ${args.data.post}`, { 
+            comment: {
+                mutation: 'CREATED',
+                data: comment
+            }
+        });
 
         // response
         return comment;
@@ -174,7 +180,7 @@ const Mutation = {
     },
 
     // delete comment by id
-    deleteComment(parent, args, { db }, info) {
+    deleteComment(parent, args, { db, pubsub }, info) {
 
         // search for the comment
         const commentIndex = db.comments.findIndex(comment => comment.id === args.id);
@@ -185,10 +191,19 @@ const Mutation = {
         }
 
         // delete the comment and get it back
-        const deletedComments = db.comments.splice(commentIndex, 1);
+        const [comment] = db.comments.splice(commentIndex, 1);
+
+        // use the deleted comment's post id to inform through the correct channel
+        // the deleted comment content and the mutation operation (this comment was deleted)
+        pubsub.publish(`comment ${comment.post}`, {
+            comment: {
+                mutation: 'DELETED',
+                data: comment
+            }
+        });
 
         // return the deleted comment
-        return deletedComments[0];
+        return comment;
 
     },
 
@@ -309,7 +324,7 @@ const Mutation = {
     },
 
     // update a comment
-    updateComment(parent, args, { db }, info) {
+    updateComment(parent, args, { db, pubsub }, info) {
 
         const { id, data } = args;
 
@@ -325,6 +340,15 @@ const Mutation = {
         if (typeof data.text === 'string') {
             comment.text = data.text;
         }
+
+        // inform through the correct channel about the updated comment and the
+        // mutation operation (this comment was updated)
+        pubsub.publish(`comment ${comment.post}`, {
+            comment: {
+                mutation: 'UPDATED',
+                data: comment
+            }
+        });
 
         return comment;
 
