@@ -51,6 +51,9 @@
 # UpdateUserInput the same as CreateUserInput but with all fields optional
 # UpdatePostInput the same as CreatePostInput but with all fields optional (except author)
 # UpdateCommentInput the same as CreateCommentInput but with all fields optional (except author and post)
+
+# type Subscription: setup subscriptions
+# count subscription returns an integer
 type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
@@ -69,6 +72,10 @@ type Mutation {
     updateUser(id: ID!, data: UpdateUserInput!): User!
     updatePost(id: ID!, data: UpdatePostInput!): Post!
     updateComment(id: ID!, data: UpdateCommentInput!): Comment!
+}
+
+type Subscription {
+    count: Int!
 }
 
 input CreateUserInput {
