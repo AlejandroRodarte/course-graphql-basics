@@ -54,7 +54,7 @@ const Mutation = {
     },
 
     // create a new comment
-    createComment(parent, args, { db }, info) {
+    createComment(parent, args, { db, pubsub }, info) {
 
         // check if user exists
         const userExists = db.users.some(user => user.id === args.data.author);
@@ -80,6 +80,11 @@ const Mutation = {
 
         // add the new comment
         db.comments.push(comment);
+
+        // publish the new comment object on the channel that belong to a particular post id
+        // example: subscribe to post 12; channel name: 'comment 12'
+        // when a comment in post 12 is made, we publish the comment to channel 'comment 12'
+        pubsub.publish(`comment ${args.data.post}`, { comment });
 
         // response
         return comment;

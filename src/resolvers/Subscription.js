@@ -20,6 +20,24 @@ const Subscription = {
             return pubsub.asyncIterator('count');
 
         }
+    },
+
+    // the comment resolver to listen for comments in a post
+    comment: {
+        subscribe(parent, { postId }, { db, pubsub }, info) {
+
+            // find the post
+            const post = db.posts.find(post => post.id === postId && post.published);
+
+            // post not found: throw error
+            if (!post) {
+                throw new Error('The post was not found.')
+            }
+
+            // create new channel with the unique post id embedded
+            return pubsub.asyncIterator(`comment ${postId}`);
+
+        }
     }
 
 };
