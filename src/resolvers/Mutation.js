@@ -163,6 +163,50 @@ const Mutation = {
         // return the deleted comment
         return deletedComments[0];
 
+    },
+
+    // update user by id
+    updateUser(parent, args, { db }, info) {
+
+        // destructure inputs
+        const { id, data } = args;
+
+        // find user
+        const user = db.users.find(user => user.id === id);
+
+        // no user found: throw error
+        if (!user) {
+            throw new Error('Attempted to update a user that does not exist.');
+        }
+
+        // check if email is a string
+        if (typeof data.email === 'string') {
+
+            // check if email is taken
+            const emailTaken = db.users.some(user => user.email === data.email);
+
+            // email taken: throw error
+            if (emailTaken) {
+                throw new Error('Email is already being in use.');
+            }
+
+            // assign property
+            user.email = data.email;
+
+        }
+
+        // check if name is a string and assign value
+        if (typeof data.name === 'string') {
+            user.name = data.name;
+        }
+
+        // check if age is either a number or null
+        if (typeof data.age === 'number' || data.age === null) {
+            user.age = data.age;
+        }
+
+        return user;
+
     }
 
 };
