@@ -49,8 +49,14 @@ const Mutation = {
         db.posts.push(post);
 
         // if post is published, publish the post through the 'post' channel
+        // inform about the mutation operation: this post was created
         if (args.data.published) {
-            pubsub.publish('post', { post });
+            pubsub.publish('post', {
+                post: {
+                    mutation: 'CREATED', 
+                    data: post 
+                }
+            });
         }
 
         // response
@@ -135,7 +141,7 @@ const Mutation = {
     },
 
     // delete a post by id
-    deletePost(parent, args, { db }, info) {
+    deletePost(parent, args, { db, pubsub }, info) {
 
         // search for the post
         const postIndex = db.posts.findIndex(post => post.id === args.id);
@@ -145,14 +151,25 @@ const Mutation = {
             throw new Error('Attempted to delete a non-existent post.');
         }
         
-        // delete and get deleted post
-        const deletedPosts = db.posts.splice(postIndex, 1);
+        // delete and get deleted post (array destructuring)
+        const [post] = db.posts.splice(postIndex, 1);
 
         // filter our comments that were not related to that post
         db.comments = db.comments.filter(comment => comment.post !== args.id);
 
+        // if the deleted post was published, publish the post providing information
+        // about the mutation type (the post was deleted)
+        if (post.published) {
+            pubsub.publish('post', {
+                post: {
+                    mutation: 'DELETED',
+                    data: post
+                }
+            });
+        }
+
         // return deleted post
-        return deletedPosts[0];
+        return post;
 
     },
 
@@ -220,12 +237,15 @@ const Mutation = {
     },
 
     // update post
-    updatePost(parent, args, { db }, info) {
+    updatePost(parent, args, { db, pubsub }, info) {
 
         const { id, data } = args;
 
         // find post
         const post = db.posts.find(post => post.id === id);
+
+        // a copy of the original post
+        const originalPost = { ...post };
 
         // not found: throw error
         if (!post) {
@@ -244,7 +264,43 @@ const Mutation = {
 
         // published is a boolean
         if (typeof data.published === 'boolean') {
+
             post.published = data.published;
+
+            let mutation = '';
+            let finalPost;
+
+            if (originalPost.published && !post.published) {
+
+                // first scenario: post was originally published and it was edited to
+                // be unpublished: mark the original post as deleted
+                mutation = 'DELETED';
+                finalPost = originalPost;
+
+            } else if (!originalPost.published && post.published) {
+
+                // second scenario: post was originally unpublihsed and it was edited to
+                // be published: mark the new post as created
+                mutation = 'CREATED';
+                finalPost = post;
+
+            } else if (post.published) {
+
+                // third scenario: the post was mantained as published: mark the updated post
+                // as updated
+                mutation = 'UPDATED'
+                finalPost = post;
+
+            }
+
+            // publish the final mutation and post value from the if-else statement
+            pubsub.publish('post', {
+                post: {
+                    mutation,
+                    data: finalPost
+                }
+            });
+
         }
 
         // return updated post
